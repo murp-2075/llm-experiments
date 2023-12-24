@@ -1,0 +1,15 @@
+In December 2022, after more than a decade of effort and frustration, scientists at the US National Ignition Facility (NIF) announced that they had set a world record by producing a fusion reaction that released more energy than it consumed — a phenomenon known as ignition. They have now proved that the feat was no accident by replicating it again and again, and the administration of US President Joe Biden is looking to build on this success by establishing a trio of US research centres to help advance the science.
+
+The stadium-sized laser facility, housed at the Lawrence Livermore National Laboratory (LLNL) in California, has unequivocally achieved its goal of ignition in four out of its last six attempts, creating a reaction that generates pressures and temperatures greater than those that occur inside the Sun.
+
+“I’m feeling pretty good,” says Richard Town, a physicist who heads the lab’s inertial-confinement fusion science programme at the LLNL. “I think we should all be proud of the achievement.”
+
+The NIF was designed not as a power plant, but as a facility to recreate and study the reactions that occur during thermonuclear detonations after the United States halted underground weapons testing in 1992. The higher fusion yields are already being used to advance nuclear-weapons research, and have also fuelled enthusiasm about fusion as a limitless source of clean energy. US secretary of state John Kerry called for new international partnerships to advance fusion energy at the COP28 climate summit in Dubai last week, and the US Department of Energy (DOE), which oversees the NIF, followed up by announcing the new research hubs, to be led by Lawrence Livermore, the University of Rochester in New York and Colorado State University in Fort Collins.
+
+Building the NIF was “a leap of faith” for many, and its success has had a real impact on the fusion community, as well as on public perception, says Saskia Mordijck, a physicist at the College of William and Mary in Willamsburg, Virginia. “In that sense, what is important is that scientists said they could do something, and then they actually did do something.”
+
+Hot shots
+
+The NIF works by firing 192 laser beams at a frozen pellet of the hydrogen isotopes deuterium and tritium that is housed in a diamond capsule suspended inside a gold cylinder. The resulting implosion causes the isotopes to fuse, creating helium and copious quantities of energy. On 5 December 2022, those fusion reactions for the first time generated more energy — roughly 54% more — than the laser beams delivered to the target.
+
+The facility set a new record on 30 July when its beams delivered the same amount of energy to the target — 2.05 megajoules — but, this time, the implosion generated 3.88 megajoules of fusion energy, an 89% increase over the input energy. Scientists at the laboratory achieved ignition during two further attempts in October (see ‘A year of progress’). And the laboratory’s calculations suggest that two others in June and September generated slightly more energy than the lasers provided, but not enough to confirm ignition.
