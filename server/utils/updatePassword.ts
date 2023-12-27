@@ -1,4 +1,4 @@
-import {Database} from 'bun:sqlite';
+import { Database } from 'bun:sqlite';
 
 // Function to hash password
 async function hashPassword(password: string) {
@@ -8,9 +8,16 @@ async function hashPassword(password: string) {
 // Function to insert user data into the database
 async function updatePassword(email: string, hashedPassword: string) {
     const db = new Database('./database.db');
-    // const db = sqlite.open('./users.db');
+    //get user from db
+    const getUserSQL = db.query('SELECT * FROM users WHERE email = ?');
+    const user = getUserSQL.get(email);
+    if (!user) {
+        console.error('User not found');
+        process.exit(1);
+    }
+
     const updateQuery = db.query('UPDATE users SET password = ? WHERE email = ?')
-    updateQuery.run(email, hashedPassword);
+    updateQuery.run(hashedPassword, email);
     console.log('Password updated successfully!');
     db.close();
 }

@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import chat from '../utils/openai';
-import { Thread, Message } from '../models/openai';
+import chat, { getChatTitle, transcribeAudio, getTTS } from '../utils/openai';
+import { Thread, Message, AudioFiles } from '../models/openai';
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs';
+import fs from 'fs';
 
 class APIController {
 
@@ -24,9 +25,42 @@ class APIController {
         }
     }
 
-    static async createMessage(req: Request, res: Response) {
-        //get threadId, role, content from json post request
-        const threadId = Number(req.body.threadId);
+    public static async getAudioFile(req: Request, res: Response) {
+        const messageId = Number(req.params.messageId);
+        const message = Message.getMessageById(messageId);
+        if (!message) {
+            res.status(404).send('Message not found');
+            return;
+        }
+        const thread = Thread.getThreadById(message.threadId);
+        if (!req.session.user || thread.userId !== req.session.user.id) {
+            res.status(403).send('Forbidden');
+            return;
+        }
+        const audioFile = AudioFiles.getAudioFileByMessageId(messageId);
+        if (!audioFile) {
+            res.status(404).send('Audio file not found');
+            return;
+        }
+        res.set('Content-Type', 'audio/mpeg');
+
+        // Stream file to client
+        const filePath = audioFile.filePath;
+        const readStream = fs.createReadStream(filePath);
+
+        // Pipe the read stream to the response
+        readStream.on('open', function () {
+            readStream.pipe(res);
+        });
+
+        // Handle errors during streaming
+        readStream.on('error', function (err) {
+            res.status(500).send('Error streaming the file');
+        });
+
+    }
+
+    private static async processMessage(threadId: number, role: string, content: string, name: string, speakResponses: boolean, req: Request, res: Response) {
         const thread = Thread.getThreadById(threadId);
         if (!thread) {
             res.status(404).send('Thread not found');
@@ -36,19 +70,64 @@ class APIController {
             res.status(403).send('Forbidden');
             return;
         }
-        const role = req.body.role;
-        const content = req.body.content;
-        const name = req.body.name;
-        const messages = Message.getMessagesByThreadId(threadId)
+        const messages = Message.getMessagesByThreadId(threadId);
         const cleanedMessages = messages.map(({ role, content, name }) => ({ role, content, name }));
-        const newMessages: ChatCompletionMessageParam[] = [...cleanedMessages as ChatCompletionMessageParam[], { role, content, name }];
+        const newMessages: ChatCompletionMessageParam[] = [...cleanedMessages, { role, content, name }];
         const chatResponse = await chat(newMessages);
-        newMessages.push({ role, content, name: '' });
-        Message.addMessage(threadId, role, content, '');
+        const newMessage = Message.addMessage(threadId, role, content, '');
         Message.addMessage(threadId, chatResponse.role, chatResponse.content as string, '');
-        res.json([
-            { role, content, name: '' },
-            { role: chatResponse.role, content: chatResponse.content, name: '' }]);
+        const returnObject = {
+            audioMessage: { id: 0, hasFile: false },
+            messages: [
+                { role, content, name: '' },
+                { role: chatResponse.role, content: chatResponse.content, name: '' }]
+        }
+        if (speakResponses) {
+            const buffer = await getTTS(chatResponse.content as string);
+            AudioFiles.addAudioFile(newMessage.id, buffer);
+            returnObject.audioMessage.hasFile = true;
+            returnObject.audioMessage.id = newMessage.id;
+        }
+        res.json(returnObject);
+    }
+
+    static async createMessage(req: Request, res: Response) {
+        const { threadId, role, content, name, speakResponses } = req.body;
+        await APIController.processMessage(Number(threadId), role, content, name, !!speakResponses, req, res);
+        return;
+    }
+
+    static async createMessageFromAudio(req: Request, res: Response) {
+        const { threadId, role, name, speakResponses } = req.body;
+        let content: any = req.file;
+        const transcription: any = await transcribeAudio(content);
+        content = transcription.text;
+        req.body.content = transcription;
+        await APIController.processMessage(Number(threadId), role, content, name, !!speakResponses, req, res);
+    }
+
+    static async autoNameThread(req: Request, res: Response) {
+        if (!req.session.user) {
+            res.status(403).send('Forbidden');
+            return;
+        }
+        const threadId = Number(req.query.threadId); // Convert threadId to number
+        const thread = Thread.getThreadById(threadId);
+        if (!thread) {
+            res.status(404).send('Thread not found');
+            return;
+        }
+        if (thread.userId !== req.session.user.id) {
+            res.status(403).send('Forbidden');
+            return;
+        }
+        const messages = Message.getMessagesByThreadId(threadId);
+        const cleanedMessages = messages.map(({ role, content, name }) => ({ role, content, name }));
+        const newMessages: ChatCompletionMessageParam[] = [...cleanedMessages as ChatCompletionMessageParam[]];
+        const chatResponse = await getChatTitle(newMessages);
+        Thread.updateThread(threadId, chatResponse);
+        thread.title = chatResponse;
+        res.json(thread);
     }
 
     static async getThreads(req: Request, res: Response) {
@@ -91,6 +170,7 @@ class APIController {
         }
         const title = req.body.title;
         Thread.updateThread(threadId, title);
+        thread.title = title;
         res.json(thread);
     }
 

@@ -25,7 +25,6 @@ const sessionConfig = {
   }
 };
 
-
 // Import route handlers
 import userRoutes from './src/routes/userRoutes';
 import homeRoutes from './src/routes/homeRoutes';

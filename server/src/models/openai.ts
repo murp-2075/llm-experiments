@@ -1,4 +1,5 @@
 import db from "../utils/db";
+import fs from 'fs';
 
 (() => {
     const createQuery = db.query(`
@@ -20,7 +21,61 @@ import db from "../utils/db";
         CREATE INDEX IF NOT EXISTS threadId_index ON messages (threadId)
     `);
     indexQuery2.run();
+
+    const createQuery3 = db.query(`CREATE TABLE IF NOT EXISTS audioFiles
+        (id INTEGER PRIMARY KEY, messageId INTEGER, filePath string, createdAt TEXT)
+    `);
+    createQuery3.run();
+    const indexQuery3 = db.query(`
+        CREATE INDEX IF NOT EXISTS messageId_index ON audioFiles (messageId)
+    `);
+    indexQuery3.run();
+
 })();
+
+
+class AudioFiles {
+    // Constructor for AudioFiles model
+    public id: number;
+    public messageId: number;
+    public filePath: string;
+    public createdAt: string;
+
+    constructor(id: number, messageId: number, filePath: string, createdAt: string) {
+        this.id = id;
+        this.messageId = messageId;
+        this.filePath = filePath;
+        this.createdAt = createdAt;
+    }
+
+    // Method to find a message by ID
+    static getAudioFileByMessageId(messageId: number) {
+        const sql = db.query('SELECT * FROM audioFiles WHERE messageId = ?');
+        const row: any = sql.get(messageId)
+        return new AudioFiles(row.id, row.messageId, row.filePath, row.createdAt);
+    }
+
+    static addAudioFile(messageId: number, filePath: string) {
+        const sql = db.query('INSERT INTO audioFiles (messageId, filePath, createdAt) VALUES (?, ?, ?)');
+        const date = new Date();
+        const createdAt = date.toISOString();
+        sql.run(messageId, filePath, createdAt);
+    }
+
+    static deleteAudioFileByMessageId(messageId: number) {
+        //get the audioFile
+        try {
+            const audioFile = AudioFiles.getAudioFileByMessageId(messageId);
+            //delete the audioFile
+            fs.unlinkSync(audioFile.filePath);
+            //delete the row in the database
+            const sql = db.query('DELETE FROM audioFiles WHERE messageId = ?');
+            sql.run(messageId);
+        } catch (err) {
+            //do nothing
+        }
+    }
+}
 
 class Message {
     // Constructor for Message model
@@ -52,11 +107,22 @@ class Message {
         return messages;
     }
 
-    static addMessage(threadId: number, role: string, content: string, name: string) {
+    static getMessageById(id: number) {
+        const sql = db.query('SELECT * FROM messages WHERE id = ?');
+        const row: any = sql.get(id)
+        return new Message(row.id, row.threadId, row.role, row.content, row.name, row.createdAt);
+    }
+
+    static addMessage(threadId: number, role: string, content: string, name: string): Message {
         const sql = db.query('INSERT INTO messages (threadId, role, content, name, createdAt) VALUES (?, ?, ?, ?, ?)');
         const date = new Date();
         const createdAt = date.toISOString();
         sql.run(threadId, role, content, name, createdAt);
+        //get last inserted row id
+        const lastIDSQL = db.query('SELECT last_insert_rowid() as lastID');
+        const lastIDRow: any = lastIDSQL.get();
+        const messageId = lastIDRow.lastID;
+        return new Message(messageId, threadId, role, content, name, createdAt);
     }
 
     static updateMessage(id: number, role: string, content: string) {
@@ -114,7 +180,7 @@ class Thread {
         sql.run(userId, title, createdAt, updatedAt);
         const lastIDSQL = db.query('SELECT last_insert_rowid() as lastID');
         const lastIDRow: any = lastIDSQL.get();
-        const threadId = lastIDRow.lastID; 
+        const threadId = lastIDRow.lastID;
         return new Thread(threadId, userId, title, createdAt, updatedAt);
     }
 
@@ -131,6 +197,13 @@ class Thread {
     }
 
     static deleteThread(id: number) {
+        //get All audioFiles for messages in thread
+        const messages = Message.getMessagesByThreadId(id);
+        //delete audioFiles
+        messages.forEach((message: any) => {
+            AudioFiles.deleteAudioFileByMessageId(message.id);
+        });
+
         const messageSql = db.query('DELETE FROM messages WHERE threadId = ?');
         messageSql.run(id);
         const threadSql = db.query('DELETE FROM threads WHERE id = ?');
@@ -139,4 +212,4 @@ class Thread {
 
 }
 
-export { Message, Thread };
+export { AudioFiles, Message, Thread };
