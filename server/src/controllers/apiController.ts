@@ -88,6 +88,7 @@ class APIController {
             returnObject.audioMessage.hasFile = true;
             returnObject.audioMessage.id = newMessage.id;
         }
+        console.log("About to return", returnObject)
         res.json(returnObject);
     }
 

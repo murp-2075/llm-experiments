@@ -2,8 +2,8 @@ import OpenAI from 'openai';
 import { ChatCompletionMessageToolCall, ChatCompletionTool } from 'openai/resources/index.mjs';
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs';
 
-// model: 'gpt-4-1106-preview',
-const model = 'gpt-3.5-turbo-1106'
+const model = 'gpt-4-1106-preview'
+// const model = 'gpt-3.5-turbo-1106'
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
@@ -16,7 +16,6 @@ const chat = async function (messages: any): Promise<OpenAI.Chat.Completions.Cha
             delete message.name;
         }
     });
-    console.log("about to send, ", messages)
     const chatCompletion = await openai.chat.completions.create({
         messages,
         // model: 'gpt-4-1106-preview',
