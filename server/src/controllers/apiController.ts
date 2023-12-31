@@ -26,8 +26,13 @@ class APIController {
     }
 
     public static async getAudioFile(req: Request, res: Response) {
-        const messageId = Number(req.params.messageId);
-        const message = Message.getMessageById(messageId);
+        const audioFileId = Number(req.params.audioFileId);
+        const audioFile = AudioFiles.getAudioFileById(audioFileId);
+        if (!audioFile) {
+            res.status(404).send('Audio file not found');
+            return;
+        }
+        const message = Message.getMessageById(audioFile.messageId);
         if (!message) {
             res.status(404).send('Message not found');
             return;
@@ -35,11 +40,6 @@ class APIController {
         const thread = Thread.getThreadById(message.threadId);
         if (!req.session.user || thread.userId !== req.session.user.id) {
             res.status(403).send('Forbidden');
-            return;
-        }
-        const audioFile = AudioFiles.getAudioFileByMessageId(messageId);
-        if (!audioFile) {
-            res.status(404).send('Audio file not found');
             return;
         }
         res.set('Content-Type', 'audio/mpeg');
@@ -75,18 +75,26 @@ class APIController {
         const newMessages: ChatCompletionMessageParam[] = [...cleanedMessages, { role, content, name }];
         const chatResponse = await chat(newMessages);
         const newMessage = Message.addMessage(threadId, role, content, '');
-        Message.addMessage(threadId, chatResponse.role, chatResponse.content as string, '');
+        const assisstantMessage = Message.addMessage(threadId, chatResponse.role, chatResponse.content as string, '');
         const returnObject = {
-            audioMessage: { id: 0, hasFile: false },
+            audioMessage: { audioFileIds: [], hasFile: false },
             messages: [
-                { role, content, name: '' },
-                { role: chatResponse.role, content: chatResponse.content, name: '' }]
+                { id: newMessage.id, role, content, name: '' },
+                { id: assisstantMessage.id, role: chatResponse.role, content: chatResponse.content, name: '' }]
         }
         if (speakResponses) {
-            const buffer = await getTTS(chatResponse.content as string);
-            AudioFiles.addAudioFile(newMessage.id, buffer);
+            const mp3Files = await getTTS(chatResponse.content as string);
+            console.log("mp3Files", mp3Files)
+            const audioFilesIds: number[] = [];
+            for (let i = 0; i < mp3Files.length; i++) {
+                const mp3File = mp3Files[i];
+                console.log("About to add audioFile with mesasge id ", newMessage.id, "and mp3File", mp3File, "to database")
+                const audioFile = AudioFiles.addAudioFile(assisstantMessage.id, mp3File);
+                console.log("audioFile id", audioFile.id)
+                audioFilesIds.push(audioFile.id);
+            }
             returnObject.audioMessage.hasFile = true;
-            returnObject.audioMessage.id = newMessage.id;
+            returnObject.audioMessage.audioFileIds.push(...audioFilesIds);
         }
         console.log("About to return", returnObject)
         res.json(returnObject);
@@ -98,6 +106,23 @@ class APIController {
         return;
     }
 
+    static async updateMessage(req: Request, res: Response) {
+        const { messageId, content } = req.body;
+        const message = Message.getMessageById(messageId);
+        if (!message) {
+            res.status(404).send('Message not found');
+            return;
+        }
+        const thread = Thread.getThreadById(message.threadId);
+        if (!req.session.user || thread.userId !== req.session.user.id) {
+            res.status(403).send('Forbidden');
+            return;
+        }
+        Message.updateMessage(messageId, message.role, content);
+        message.content = content;
+        res.json(message);
+    }
+
     static async createMessageFromAudio(req: Request, res: Response) {
         const { threadId, role, name, speakResponses } = req.body;
         let content: any = req.file;
@@ -105,6 +130,37 @@ class APIController {
         content = transcription.text;
         req.body.content = transcription;
         await APIController.processMessage(Number(threadId), role, content, name, !!speakResponses, req, res);
+    }
+
+    static async getAudioFileIdsFromMessage(req: Request, res: Response) {
+        const messageId = Number(req.params.messageId);
+        const message = Message.getMessageById(messageId);
+        if (!message) {
+            res.status(404).send('Message not found');
+            return;
+        }
+        const thread = Thread.getThreadById(message.threadId);
+        if (!req.session.user || thread.userId !== req.session.user.id) {
+            res.status(403).send('Forbidden');
+            return;
+        }
+        const audioFiles = AudioFiles.getAudioFilesByMessageId(messageId);
+        if (audioFiles.length === 0) {
+            //create the audio files
+            const mp3Files = await getTTS(message.content);
+            console.log("mp3Files", mp3Files)
+            const audioFilesIds: number[] = [];
+            for (let i = 0; i < mp3Files.length; i++) {
+                const mp3File = mp3Files[i];
+                console.log("About to add audioFile with mesasge id ", message.id, "and mp3File", mp3File, "to database")
+                const audioFile = AudioFiles.addAudioFile(message.id, mp3File);
+                console.log("audioFile id", audioFile.id)
+                audioFilesIds.push(audioFile.id);
+            }
+            return res.json(audioFilesIds);
+        }
+        const audioFileIds = audioFiles.map(audioFile => audioFile.id);
+        res.json(audioFileIds);
     }
 
     static async autoNameThread(req: Request, res: Response) {

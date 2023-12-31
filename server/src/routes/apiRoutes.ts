@@ -12,8 +12,10 @@ import APIController from '../controllers/apiController';
 // GET request to retrieve all users
 router.get('/getMessages', isLoggedIn, APIController.getMessages);
 router.post('/createMessage', isLoggedIn, APIController.createMessage);
+router.post('/updateMessage', isLoggedIn, APIController.updateMessage);
 router.post('/createMessageFromAudio', isLoggedIn, upload.single('content'), APIController.createMessageFromAudio);
-router.get('/getAudioFile/:messageId', isLoggedIn, APIController.getAudioFile);
+router.get('/getAudioFile/:audioFileId', isLoggedIn, APIController.getAudioFile);
+router.get('/getAudioFileIdsFromMessage/:messageId', isLoggedIn, APIController.getAudioFileIdsFromMessage); 
 
 router.get('/getThreads', isLoggedIn, APIController.getThreads);
 router.get('/autoNameThread', isLoggedIn, APIController.autoNameThread);

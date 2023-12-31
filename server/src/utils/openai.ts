@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { ChatCompletionMessageToolCall, ChatCompletionTool } from 'openai/resources/index.mjs';
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs';
+import { chunkText } from './textUtils';
 
 const model = 'gpt-4-1106-preview'
 // const model = 'gpt-3.5-turbo-1106'
@@ -67,17 +68,29 @@ const createGuid = () => {
     });
 }
 
-const getTTS = async function (text: string): Promise<string> {
-    const speechFile = `./audioFiles/${createGuid()}.mp3`
+const getTTS = async function (text: string): Promise<string[]> {
+    const texts = chunkText(text, 1024);
+    const ttsPromises: Promise<any>[] = [];
 
-    const mp3 = await openai.audio.speech.create({
-        model: "tts-1",
-        voice: "nova",
-        input: text,
-    });
-    const buffer = Buffer.from(await mp3.arrayBuffer());
-    await fs.promises.writeFile(speechFile, buffer);
-    return speechFile;
+    texts.forEach(async (text) => {
+        ttsPromises.push(openai.audio.speech.create({
+            model: "tts-1",
+            voice: "nova",
+            input: text,
+        }));
+    })
+    const mp3s = await Promise.all(ttsPromises);
+    const speechFiles: string[] = [];
+    for (let i = 0; i < mp3s.length; i++) {
+        const mp3 = mp3s[i];
+        const speechFile = `./audioFiles/${createGuid()}.mp3`
+        const buffer = Buffer.from(await mp3.arrayBuffer());
+        console.log("buffer size", buffer.length)
+        await fs.promises.writeFile(speechFile, buffer);
+        console.log("speechFile", speechFile)
+        speechFiles.push(speechFile);
+    }
+    return speechFiles;
 }
 
 // const { Readable } = require('stream');
