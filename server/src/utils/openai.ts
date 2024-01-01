@@ -49,13 +49,17 @@ const getChatTitle = async function (messages: any): Promise<string> {
             delete message.name;
         }
     });
+    
     const chatCompletion = await openai.chat.completions.create({
         messages,
         model,
-        tools
+        tools,
+        tool_choice: {"type": "function", "function": {"name": "handle_chat_title"}}
     });
     const tool_call = chatCompletion.choices[0]?.message?.tool_calls?.[0];
     const results = JSON.parse(tool_call?.function?.arguments || '{}');
+    console.log("tool_call", tool_call)
+    console.log("results", results)
     return results.title;
     // return chatCompletion.choices[0].message;
 }

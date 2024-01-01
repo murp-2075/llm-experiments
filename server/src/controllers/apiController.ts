@@ -184,6 +184,7 @@ class APIController {
         const chatResponse = await getChatTitle(newMessages);
         Thread.updateThread(threadId, chatResponse);
         thread.title = chatResponse;
+        console.log("thread renmaed as: ", thread)
         res.json(thread);
     }
 
