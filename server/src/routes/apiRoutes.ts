@@ -13,7 +13,8 @@ import APIController from '../controllers/apiController';
 router.get('/getMessages', isLoggedIn, APIController.getMessages);
 router.post('/createMessage', isLoggedIn, APIController.createMessage);
 router.post('/updateMessage', isLoggedIn, APIController.updateMessage);
-router.post('/createMessageFromAudio', isLoggedIn, upload.single('content'), APIController.createMessageFromAudio);
+// router.post('/createMessageFromAudio', isLoggedIn, upload.single('content'), APIController.createMessageFromAudio);
+router.post('/transcribeAudio', isLoggedIn, upload.single('content'), APIController.transcribeAudio);
 router.get('/getAudioFile/:audioFileId', isLoggedIn, APIController.getAudioFile);
 router.get('/getAudioFileIdsFromMessage/:messageId', isLoggedIn, APIController.getAudioFileIdsFromMessage); 
 

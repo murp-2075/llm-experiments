@@ -78,10 +78,10 @@ const ChatContainer: Component = () => {
   const recordingClickHandler = async (skipSilenceDetector = false) => {
     // Function to handle audio play and message creation
     const handleAudioPlayback = async (audioBlob: any) => {
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      audio.play();
-      await createMessageFromAudio(audioBlob);
+      // const audioUrl = URL.createObjectURL(audioBlob);
+      // const audio = new Audio(audioUrl);
+      // audio.play();
+      createMessageFromAudio(audioBlob);
     };
 
     // Function to toggle button class
@@ -97,7 +97,7 @@ const ChatContainer: Component = () => {
         const audioBlob = await promise;
         if (!audioBlob) return;
         toggleButtonClass(true);
-        await handleAudioPlayback(audioBlob);
+        handleAudioPlayback(audioBlob);
       });
     }
 
@@ -106,7 +106,7 @@ const ChatContainer: Component = () => {
       const audioBlob = await audioRecorder.stopRecording();
       if (!audioBlob) return;
       toggleButtonClass(true);
-      await handleAudioPlayback(audioBlob);
+      handleAudioPlayback(audioBlob);
     } else {
       toggleButtonClass(false);
       audioRecorder.startRecording(skipSilenceDetector);

@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
-import { ChatCompletionMessageToolCall, ChatCompletionTool } from 'openai/resources/index.mjs';
-import { ChatCompletionMessageParam } from 'openai/resources/index.mjs';
+import { ChatCompletionTool } from 'openai/resources/index.mjs';
 import { chunkText } from './textUtils';
+import { Stream } from 'openai/streaming.mjs';
 
 const model = 'gpt-4-1106-preview'
 // const model = 'gpt-3.5-turbo-1106'
@@ -22,6 +22,21 @@ const chat = async function (messages: any): Promise<OpenAI.Chat.Completions.Cha
         model,
     });
     return chatCompletion.choices[0].message;
+}
+
+const chatAsync = async function (messages: any): Promise<Stream<OpenAI.Chat.Completions.ChatCompletionChunk>> {
+    //If name is empty, delete the property, OpenAI hates extra strings
+    messages.forEach((message: any) => {
+        if (message.name === '' || message.content === '') {
+            delete message.name;
+        }
+    });
+    const stream = await openai.chat.completions.create({
+        messages,
+        model,
+        stream: true
+    });
+    return stream;
 }
 
 const getChatTitle = async function (messages: any): Promise<string> {
@@ -82,13 +97,15 @@ const getTTS = async function (text: string): Promise<string[]> {
             // voice: "nova",
             voice: "onyx",
             input: text,
+            response_format: "aac"
         }));
     })
     const mp3s = await Promise.all(ttsPromises);
     const speechFiles: string[] = [];
     for (let i = 0; i < mp3s.length; i++) {
         const mp3 = mp3s[i];
-        const speechFile = `./audioFiles/${createGuid()}.mp3`
+        // const speechFile = `./audioFiles/${createGuid()}.mp3`
+        const speechFile = `./audioFiles/${createGuid()}.aac`
         const buffer = Buffer.from(await mp3.arrayBuffer());
         console.log("buffer size", buffer.length)
         await fs.promises.writeFile(speechFile, buffer);
@@ -153,6 +170,6 @@ const transcribeAudio = async function (audio: any, format = 'mp3') {
     })
 }
 
-export { chat, getChatTitle, transcribeAudio, getTTS };
+export { chat, chatAsync, getChatTitle, transcribeAudio, getTTS };
 
 export default chat;

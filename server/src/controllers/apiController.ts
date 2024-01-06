@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import chat, { getChatTitle, transcribeAudio, getTTS } from '../utils/openai';
+import { chatAsync, getChatTitle, transcribeAudio, getTTS } from '../utils/openai';
 import { Thread, Message, AudioFiles } from '../models/openai';
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs';
 import fs from 'fs';
@@ -42,7 +42,8 @@ class APIController {
             res.status(403).send('Forbidden');
             return;
         }
-        res.set('Content-Type', 'audio/mpeg');
+        // res.set('Content-Type', 'audio/mpeg');
+        res.set('Content-Type', 'audio/aac');
 
         // Stream file to client
         const filePath = audioFile.filePath;
@@ -73,37 +74,32 @@ class APIController {
         }
         const messages = Message.getMessagesByThreadId(threadId);
         const cleanedMessages = messages.map(({ role, content, name }) => ({ role, content, name }));
-        const newMessages: ChatCompletionMessageParam[] = [...cleanedMessages, { role, content, name }];
+        const userMessages: ChatCompletionMessageParam[] = [...cleanedMessages, { role, content, name }];
+        const userMessage = Message.addMessage(threadId, role, content, '');
         console.time("chat")
-        const chatResponse = await chat(newMessages);
+        const chatResponseStream = await chatAsync(userMessages);
+
+        res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+        });
+
+        res.write(JSON.stringify({ data: { userMessageId: userMessage.id } }) + '\n\n');
+
+        const assisstantMessage = Message.addMessage(threadId, 'assistant', '', '');
+
+        let assisstantMessageText: string = '';
+        for await (const chunk of chatResponseStream) {
+            const obj = { data: { id: assisstantMessage.id, c: chunk.choices[0]?.delta?.content || '' } }
+            res.write(JSON.stringify(obj) + '\n');
+            process.stdout.write(chunk.choices[0]?.delta?.content || '' + "\n");
+            assisstantMessageText += chunk.choices[0]?.delta?.content || ''
+        }
+        Message.updateMessage(assisstantMessage.id, 'assistant', assisstantMessageText);
+        res.end();
         console.timeEnd("chat")
-        const newMessage = Message.addMessage(threadId, role, content, '');
-        const assisstantMessage = Message.addMessage(threadId, chatResponse.role, chatResponse.content as string, '');
-        const returnObject = {
-            audioMessage: { audioFileIds: [], hasFile: false },
-            messages: [
-                { id: newMessage.id, role, content, name: '' },
-                { id: assisstantMessage.id, role: chatResponse.role, content: chatResponse.content, name: '' }]
-        }
-        if (speakResponses) {
-            console.time("getTTS")
-            const mp3Files = await getTTS(chatResponse.content as string);
-            console.timeEnd("getTTS")
-            console.log("mp3Files", mp3Files)
-            const audioFilesIds: number[] = [];
-            for (let i = 0; i < mp3Files.length; i++) {
-                const mp3File = mp3Files[i];
-                console.log("About to add audioFile with mesasge id ", newMessage.id, "and mp3File", mp3File, "to database")
-                const audioFile = AudioFiles.addAudioFile(assisstantMessage.id, mp3File);
-                console.log("audioFile id", audioFile.id)
-                audioFilesIds.push(audioFile.id);
-            }
-            returnObject.audioMessage.hasFile = true;
-            returnObject.audioMessage.audioFileIds.push(...audioFilesIds);
-        }
-        console.log("About to return", returnObject)
-        res.json(returnObject);
-        console.timeEnd('processMessage')
+        console.log("assisstantMessageText", assisstantMessageText)
     }
 
     static async createMessage(req: Request, res: Response) {
@@ -129,14 +125,20 @@ class APIController {
         res.json(message);
     }
 
-    static async createMessageFromAudio(req: Request, res: Response) {
-        const { threadId, role, name, speakResponses } = req.body;
+    static async transcribeAudio(req: Request, res: Response) {
         let content: any = req.file;
         const transcription: any = await transcribeAudio(content);
-        content = transcription.text;
-        req.body.content = transcription;
-        await APIController.processMessage(Number(threadId), role, content, name, !!speakResponses, req, res);
+        res.json(transcription);
     }
+
+    // static async createMessageFromAudio(req: Request, res: Response) {
+    //     const { threadId, role, name, speakResponses } = req.body;
+    //     let content: any = req.file;
+    //     const transcription: any = await transcribeAudio(content);
+    //     content = transcription.text;
+    //     req.body.content = transcription;
+    //     await APIController.processMessage(Number(threadId), role, content, name, !!speakResponses, req, res);
+    // }
 
     static async getAudioFileIdsFromMessage(req: Request, res: Response) {
         const messageId = Number(req.params.messageId);
@@ -153,15 +155,15 @@ class APIController {
         const audioFiles = AudioFiles.getAudioFilesByMessageId(messageId);
         if (audioFiles.length === 0) {
             //create the audio files
-            const mp3Files = await getTTS(message.content);
-            console.log("mp3Files", mp3Files)
+            const audioFiles = await getTTS(message.content);
+            console.log("mp3Files", audioFiles)
             const audioFilesIds: number[] = [];
-            for (let i = 0; i < mp3Files.length; i++) {
-                const mp3File = mp3Files[i];
-                console.log("About to add audioFile with mesasge id ", message.id, "and mp3File", mp3File, "to database")
-                const audioFile = AudioFiles.addAudioFile(message.id, mp3File);
-                console.log("audioFile id", audioFile.id)
-                audioFilesIds.push(audioFile.id);
+            for (let i = 0; i < audioFiles.length; i++) {
+                const audioFile = audioFiles[i];
+                console.log("About to add audioFile with mesasge id ", message.id, "and mp3File", audioFile, "to database")
+                const audioFileInstance = AudioFiles.addAudioFile(message.id, audioFile);
+                console.log("audioFile id", audioFileInstance.id)
+                audioFilesIds.push(audioFileInstance.id);
             }
             return res.json(audioFilesIds);
         }

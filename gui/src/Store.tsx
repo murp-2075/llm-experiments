@@ -173,9 +173,8 @@ const editMessage = (messageId: number, content: string) => {
 const createMessage = async (content: string) => {
     const selectedThreadId = appState?.threads?.selectedThreadId || 1;
     if (selectedThreadId) {
-        //Subit to /api/createMessage a json object with threadId and content
         startFetching()
-        fetch('/api/createMessage', {
+        const response = await fetch('/api/createMessage', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -187,54 +186,101 @@ const createMessage = async (content: string) => {
                 content: content
             })
         })
-            .then((res) => res.json())
-            .then((data) => {
-                console.log("got back ", data)
-                console.log("speakResponses is ", appState.preferences.speakResponses)
-                if (appState.preferences.speakResponses && data.audioMessage.hasFile) {
-                    //stream the audio from /api/getAudioFile?messageId=xxx
-                    console.log("playing message ", data.audioMessage.audioFileIds)
-                    playAudioFiles(data.audioMessage.audioFileIds, 0, data.messages[1].id);
-                }
-                setAppState('messages', (originalMessages) => [...originalMessages, ...data.messages]);
-                //Now see if there have now been so many responses we should have the bot rename the chat
+        // Ensure the response is OK and supports streaming
+        if (!response.ok || !response.body) {
+            throw new Error('Network response was not ok.');
+        }
+
+        // Read the response stream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        let currentAssistantMessageId: number | null = null;
+
+        // Recursive function to process the stream
+        const processStream = async () => {
+            const { done, value } = await reader.read();
+            if (done) {
+                console.log('Stream complete');
                 autoNameIfAppropriate();
-            }).finally(() => {
                 stopFetching()
-            });
+                if (appState.preferences.speakResponses) {
+                    getAudioFileIdsFromMessage(currentAssistantMessageId || 0);
+                }
+                return;
+            }
+            const chunk = decoder.decode(value, { stream: true });
+            // Parse and handle the chunk as needed
+            //Split the chunk into lines
+            const lines = chunk.split('\n');
+            lines.forEach((line) => {
+                if (line) {
+                    const { data } = JSON.parse(line);
+                    //Check if the line has userMessageId and if it does we need to build the user message from the passed in content
+                    if (data.userMessageId) {
+                        const userMessage = {
+                            id: data.userMessageId,
+                            threadId: selectedThreadId,
+                            role: 'user',
+                            content: content,
+                            createdAt: new Date().toISOString()
+                        }
+                        console.log("Adding to appState.messages with ", userMessage)
+                        setAppState('messages', (originalMessages) => [...originalMessages, userMessage]);
+                    }
+                    // Now check to see if the just has an id. If so, it will be a one of a stream of assistant messages
+                    // only containing the id and the c (for content) which we'll need to concatenate in teh store if it already exists, but otherwise create it
+                    else if (data.id) {
+                        const existingMessage = appState.messages.find((message) => message.id === data.id);
+                        currentAssistantMessageId = data.id;
+                        if (existingMessage) {
+                            const updatedMessage = {
+                                ...existingMessage,
+                                content: existingMessage.content + data.c
+                            }
+                            console.log("Updating appState.messages with ", updatedMessage)
+                            setAppState('messages', (originalMessages) => originalMessages.map((message) => message.id === data.id ? updatedMessage : message));
+                        } else {
+                            const assistantMessage = {
+                                id: data.id,
+                                threadId: selectedThreadId,
+                                role: 'assistant',
+                                content: data.c,
+                                createdAt: new Date().toISOString()
+                            }
+                            setAppState('messages', (originalMessages) => [...originalMessages, assistantMessage]);
+                        }
+                    }
+                    console.log('got back ', data);
+                }
+            })
+            console.log('CHUNK: ', chunk);
+            // Recursively read the next chunk
+            processStream();
+        };
+        // Start processing the stream
+        processStream();
     }
 }
 
 const createMessageFromAudio = async (audioBlob: Blob) => {
     const selectedThreadId = appState?.threads?.selectedThreadId || 1;
-    if (selectedThreadId) {
+    if (selectedThreadId && audioBlob.size > 0) {
         const formData = new FormData();
-        formData.append('threadId', selectedThreadId);
-        formData.append('role', 'user');
         formData.append('content', audioBlob, 'audio.wav');
-        formData.append('speakResponses', appState.preferences.speakResponses.toString());
-        // formData.append('content', audioBlob, 'audio.webm');
-        // or 'recording.wav' depending on your blob type
         startFetching()
-        fetch('/api/createMessageFromAudio', {
+        const response = await fetch('/api/transcribeAudio', {
             method: 'POST',
             body: formData
         })
-            .then((res) => res.json())
-            .then((data) => {
-                if (appState.preferences.speakResponses && data.audioMessage.hasFile) {
-                    //stream the audio from /api/getAudioFile?messageId=xxx
-                    console.log("playing message ", data.audioMessage.audioFileIds)
-                    playAudioFiles(data.audioMessage.audioFileIds, 0, data.messages[1].id);
-                }
-                setAppState('messages', (messages) => [...messages, ...data.messages]);
-                //Now see if there have now been so many responses we should have the bot rename the chat
-                autoNameIfAppropriate();
-            }).finally(() => {
-                stopFetching()
-            })
+        stopFetching()
+        //Get the text from the response which should be in json format
+        const { text } = await response.json();
+        //Now call the createMessage function with the text
+        createMessage(text);
     }
 }
+
 let audio: HTMLAudioElement | undefined;
 function playAudioFiles(audioFileIds: number[], index: number, messageId?: number) {
     if (index < audioFileIds.length) {
