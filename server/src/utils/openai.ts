@@ -19,7 +19,6 @@ const chat = async function (messages: any): Promise<OpenAI.Chat.Completions.Cha
     });
     const chatCompletion = await openai.chat.completions.create({
         messages,
-        // model: 'gpt-4-1106-preview',
         model,
     });
     return chatCompletion.choices[0].message;
@@ -73,13 +72,15 @@ const createGuid = () => {
 }
 
 const getTTS = async function (text: string): Promise<string[]> {
-    const texts = chunkText(text, 1024);
+    // const texts = chunkText(text, 1024);
+    const texts = chunkText(text, 3072);
     const ttsPromises: Promise<any>[] = [];
 
     texts.forEach(async (text) => {
         ttsPromises.push(openai.audio.speech.create({
-            model: "tts-1",
-            voice: "nova",
+            model: "tts-1-hd",
+            // voice: "nova",
+            voice: "onyx",
             input: text,
         }));
     })

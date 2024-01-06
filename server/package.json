@@ -7,7 +7,6 @@
     "devv": "bun run --watch app.ts",
     "build": "bun build ./app.ts",
     "compile": "bun build ./app.ts --compile"
-
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

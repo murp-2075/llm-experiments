@@ -61,6 +61,7 @@ class APIController {
     }
 
     private static async processMessage(threadId: number, role: string, content: string, name: string, speakResponses: boolean, req: Request, res: Response) {
+        console.time('processMessage')
         const thread = Thread.getThreadById(threadId);
         if (!thread) {
             res.status(404).send('Thread not found');
@@ -73,7 +74,9 @@ class APIController {
         const messages = Message.getMessagesByThreadId(threadId);
         const cleanedMessages = messages.map(({ role, content, name }) => ({ role, content, name }));
         const newMessages: ChatCompletionMessageParam[] = [...cleanedMessages, { role, content, name }];
+        console.time("chat")
         const chatResponse = await chat(newMessages);
+        console.timeEnd("chat")
         const newMessage = Message.addMessage(threadId, role, content, '');
         const assisstantMessage = Message.addMessage(threadId, chatResponse.role, chatResponse.content as string, '');
         const returnObject = {
@@ -83,7 +86,9 @@ class APIController {
                 { id: assisstantMessage.id, role: chatResponse.role, content: chatResponse.content, name: '' }]
         }
         if (speakResponses) {
+            console.time("getTTS")
             const mp3Files = await getTTS(chatResponse.content as string);
+            console.timeEnd("getTTS")
             console.log("mp3Files", mp3Files)
             const audioFilesIds: number[] = [];
             for (let i = 0; i < mp3Files.length; i++) {
@@ -98,6 +103,7 @@ class APIController {
         }
         console.log("About to return", returnObject)
         res.json(returnObject);
+        console.timeEnd('processMessage')
     }
 
     static async createMessage(req: Request, res: Response) {
