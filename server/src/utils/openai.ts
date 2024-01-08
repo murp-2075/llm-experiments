@@ -115,14 +115,6 @@ const getTTS = async function (text: string): Promise<string[]> {
     return speechFiles;
 }
 
-// const { Readable } = require('stream');
-// function bufferToStream(buffer: any) {
-//     const stream = new Readable();
-//     stream.push(buffer);
-//     stream.push(null); // Signifies the end of the stream
-//     return stream;
-// }
-
 
 const checkFileReady = (filePath: string, maxAttempts = 10, interval = 300) => {
     let attempts = 0;

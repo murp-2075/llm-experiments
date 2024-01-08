@@ -11,6 +11,7 @@ export default defineConfig({
         // devtools(),
         solidPlugin(),
     ],
+    base: '/messaging',
     server: {
         port: 8080,
         proxy: {

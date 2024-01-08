@@ -1,9 +1,13 @@
 import express from 'express';
-
-declare module 'express-session' {
+import User from '../models/users'; declare module 'express-session' {
     export interface SessionData {
         user: { [key: string]: any }; // or the type of your user object
     }
+}
+
+const logRequest = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    User.logRequest(req);
+    next();
 }
 
 const authMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -22,5 +26,5 @@ const isLoggedIn = (req: express.Request, res: express.Response, next: express.N
     next();
 }
 
-export { authMiddleware, isLoggedIn };
+export { authMiddleware, isLoggedIn, logRequest };
 export default authMiddleware;

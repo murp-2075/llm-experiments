@@ -72,12 +72,12 @@ const ChatMessage = (chat: ChatType) => {
                             </div>
                         </Show>
                         {/* // {chat.content} */}
-                        <Show when={showMenu()}>
+                        {/* <Show when={showMenu()}> */}
                             <ChatMessageMenu
                                 chat={chat}
                                 deleteMessageHandler={deleteMessageHandler}
                                 editMessageHandler={editMessageHandler} />
-                        </Show>
+                        {/* </Show> */}
                     </div>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-const { authMiddleware, isLoggedIn } = require('../middleware/authMiddleware');
+const { authMiddleware, isLoggedIn, logRequest } = require('../middleware/authMiddleware');
 
 import multer from 'multer';
 const storage = multer.memoryStorage(); // This will store files in memory
@@ -8,6 +8,8 @@ const upload = multer({ storage: storage });
 
 // Import the api controller
 import APIController from '../controllers/apiController';
+
+router.use(logRequest)
 
 // GET request to retrieve all users
 router.get('/getMessages', isLoggedIn, APIController.getMessages);

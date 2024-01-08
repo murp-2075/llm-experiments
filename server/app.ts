@@ -1,12 +1,12 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import path from 'path';
-
+import helmet from "helmet";
 
 import session from 'express-session';
 const SQLiteStore = require('connect-sqlite3')(session);
 
-
+const PROD = process.env.NODE_ENV === 'production';
 const sessionConfig = {
   store: new SQLiteStore({
     //   dir: 'path/to/store/directory', // Optional, default is current directory
@@ -19,9 +19,9 @@ const sessionConfig = {
   saveUninitialized: false,        // Don't save uninitialized sessions
   cookie: {
     httpOnly: true,                // Prevents client-side JS from reading the cookie 
-    secure: false,                 // Ensures cookie is only used over HTTPS
+    secure: !!PROD ? true : false,                 // Ensures cookie is only used over HTTPS
     maxAge: 7 * 24 * 60 * 60 * 1000,   // Cookie expiration time in milliseconds (e.g., 24 hours)
-    // sameSite: 'strict',         // Optional, CSRF protection
+    sameSite: 'strict',         // Optional, CSRF protection
   }
 };
 
@@ -33,7 +33,7 @@ import apiRoutes from './src/routes/apiRoutes';
 
 // Initialize Express app
 const app = express();
-
+app.use(helmet());
 // Database connection (if needed here)
 // const db = require('./src/utils/db');
 
