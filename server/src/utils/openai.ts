@@ -87,8 +87,9 @@ const createGuid = () => {
 }
 
 const getTTS = async function (text: string): Promise<string[]> {
-    // const texts = chunkText(text, 1024);
+    // const texts = chunkText(text, 2048);
     const texts = chunkText(text, 3072);
+    // const texts = chunkText(text, 256);
     const ttsPromises: Promise<any>[] = [];
 
     texts.forEach(async (text) => {

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import solidPlugin from 'vite-plugin-solid';
+import path from 'path';
 // import devtools from 'solid-devtools/vite';
 
 export default defineConfig({
@@ -11,7 +12,6 @@ export default defineConfig({
         // devtools(),
         solidPlugin(),
     ],
-    base: '/messaging',
     server: {
         port: 8080,
         proxy: {
@@ -19,8 +19,14 @@ export default defineConfig({
             // Every request to /api will be forwarded to http://localhost:3000
             '/api': 'http://localhost:3000',
         },
+        open: '/app.html',
     },
     build: {
         target: 'esnext',
+        rollupOptions: {
+            input: {
+                main: 'app.html'
+            }
+        },
     },
 });
