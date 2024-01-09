@@ -3,8 +3,8 @@ import { ChatCompletionTool } from 'openai/resources/index.mjs';
 import { chunkText } from './textUtils';
 import { Stream } from 'openai/streaming.mjs';
 
-const model = 'gpt-4-1106-preview'
-// const model = 'gpt-3.5-turbo-1106'
+// const model = 'gpt-4-1106-preview'
+const model = 'gpt-3.5-turbo-1106'
 
 const openai = new OpenAI({
     // apiKey: process.env.OPENAI_API_KEY
@@ -95,9 +95,9 @@ const getTTS = async function (text: string): Promise<string[]> {
 
     texts.forEach(async (text) => {
         ttsPromises.push(openai.audio.speech.create({
-            model: "tts-1-hd",
-            // voice: "nova",
-            voice: "onyx",
+            model: "tts-1",
+            voice: "nova",
+            // voice: "onyx",
             input: text,
             response_format: "aac"
         }));

@@ -7,6 +7,22 @@ import PreLoader from './PreLoader';
 
 declare const bootstrap: any;
 
+/**
+ * 
+ * @param func function to be debounced 
+ * @param delay in ms 
+ * @returns function to be called 
+ */ 
+const debounce = (func: any, delay: number) => {
+  let debounceTimer: number;
+  return function () {
+    const context = this;
+    const args = arguments;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => func.apply(context, args), delay);
+  };
+};
+
 const ChatContainer: Component = () => {
 
   const [container, setContainer] = createSignal();
@@ -37,29 +53,27 @@ const ChatContainer: Component = () => {
     setText('');
   }
 
-  // Scroll to bottom function
+  let lastScrollHeight = 0;
+
   const scrollToBottom = () => {
     const currentContainer = container();
     if (currentContainer) {
-      const currentContainer = container() as HTMLElement;
-      currentContainer.scrollTop = currentContainer.scrollHeight;
+      if (currentContainer.scrollHeight !== lastScrollHeight) {
+        requestAnimationFrame(() => {
+          currentContainer.scrollTop = currentContainer.scrollHeight;
+          lastScrollHeight = currentContainer.scrollHeight;
+          console.log("scrolled");
+        });
+      }
     }
   };
+  const debouncedScrollToBottom = debounce(scrollToBottom, 75);
 
   // Scroll to bottom on new message
   createEffect(() => {
     appState.messages;
-    scrollToBottom();
+    debouncedScrollToBottom();
   });
-
-  createEffect(() => {
-    //if appState.messages changes, run Prismjs highlightAll
-    // setTimeout(() => {
-    //   console.log(Prism)
-    // Prism.highlightAll();
-    // console.log("highlighted")
-    // },1000)
-  })
 
   onMount(async () => {
     inputRef.focus();

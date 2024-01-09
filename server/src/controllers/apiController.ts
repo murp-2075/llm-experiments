@@ -78,7 +78,7 @@ class APIController {
         const userMessage = Message.addMessage(threadId, role, content, '');
         // console.time("chat")
         const chatResponseStream = await chatAsync(userMessages);
-
+        
         res.writeHead(200, {
             'Content-Type': 'text/event-stream',
             'Cache-Control': 'no-cache',
