@@ -19,13 +19,15 @@ export default defineConfig({
             // Every request to /api will be forwarded to http://localhost:3000
             '/api': 'http://localhost:3000',
         },
-        open: '/app.html',
+        open: '/index.html',
     },
     build: {
         target: 'esnext',
         rollupOptions: {
             input: {
-                main: 'app.html'
+                main: 'app.html',
+                // index: 'public/index.html',
+                // login: 'public/login.html',
             }
         },
     },

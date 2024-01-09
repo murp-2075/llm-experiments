@@ -9,10 +9,10 @@ import UserController from '../controllers/userController';
 router.use(logRequest)
 
 // GET request to retrieve all users
-router.get('/', UserController.getAllUsers);
+// router.get('/', UserController.getAllUsers);
 
 // GET request to retrieve a single user by ID
-router.get('/:id', UserController.getUserById);
+// router.get('/:id', UserController.getUserById);
 
 // POST request to create a new user
 // router.post('/', UserController.createUser);

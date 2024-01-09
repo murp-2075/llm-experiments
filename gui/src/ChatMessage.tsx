@@ -60,8 +60,9 @@ const ChatMessage = (chat: ChatType) => {
         return (
             <div class="d-flex justify-content-end text-end mb-1" onMouseEnter={() => setShowMenu(true)} onMouseLeave={() => setShowMenu(false)}>
                 <div class="w-100" onDblClick={handleDoubleClick}
-                    onTouchStart={handleTouchStart}
-                    onTouchEnd={handleTouchEnd}>
+                    // onTouchStart={handleTouchStart}
+                    // onTouchEnd={handleTouchEnd}
+                    >
                     <div class="d-flex flex-column align-items-end">
                         <div class="bg-primary text-white p-2 px-3 rounded-2">{chat.content}</div>
                         <Show when={appState.audioMessageIdPlaying == chat.id}>
@@ -92,8 +93,8 @@ const ChatMessage = (chat: ChatType) => {
                 </Show>
                 <div class="flex-grow-1"
                     onDblClick={handleDoubleClick}
-                    onTouchStart={handleTouchStart}
-                    onTouchEnd={handleTouchEnd}
+                    // onTouchStart={handleTouchStart}
+                    // onTouchEnd={handleTouchEnd}
                 >
                     <div class="w-100">
                         <div class="d-flex flex-column align-items-start">

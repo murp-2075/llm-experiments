@@ -75,19 +75,19 @@ class AudioFiles {
         const lastIDRow: any = lastIDSQL.get();
         const audioFileId = lastIDRow.lastID;
         const audioFile = new AudioFiles(audioFileId, messageId, filePath, createdAt);
-        console.log("audioFileId added", audioFile)
+        // console.log("audioFileId added", audioFile)
         return audioFile;
     }
 
     static deleteAudioFileByMessageId(messageId: number) {
         //get the audioFile
         try {
-            console.log("trying to delete audioFile for messageId", messageId)
+            // console.log("trying to delete audioFile for messageId", messageId)
             const audioFile = AudioFiles.getAudioFilesByMessageId(messageId);
-            console.log("audioFile", audioFile)
+            // console.log("audioFile", audioFile)
             //Loop through audioFiles and delete them
             audioFile.forEach((audioFile: any) => {
-                console.log("deleting audioFile", audioFile)
+                // console.log("deleting audioFile", audioFile)
                 fs.unlinkSync(audioFile.filePath);
             });
             //delete the audioFile
@@ -95,7 +95,7 @@ class AudioFiles {
             const sql = db.query('DELETE FROM audioFiles WHERE messageId = ?');
             sql.run(messageId);
         } catch (err) {
-            console.log("error deleting audioFile", err)
+            // console.log("error deleting audioFile", err)
             //do nothing
         }
     }
@@ -227,7 +227,7 @@ class Thread {
         //get All audioFiles for messages in thread
         const messages = Message.getMessagesByThreadId(id);
         //delete audioFiles
-        console.log("deleteing messages", messages)
+        // console.log("deleteing messages", messages)
         messages.forEach((message: any) => {
             AudioFiles.deleteAudioFileByMessageId(message.id);
         });

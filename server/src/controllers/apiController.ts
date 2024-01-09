@@ -62,7 +62,7 @@ class APIController {
     }
 
     private static async processMessage(threadId: number, role: string, content: string, name: string, speakResponses: boolean, req: Request, res: Response) {
-        console.time('processMessage')
+        // console.time('processMessage')
         const thread = Thread.getThreadById(threadId);
         if (!thread) {
             res.status(404).send('Thread not found');
@@ -76,7 +76,7 @@ class APIController {
         const cleanedMessages = messages.map(({ role, content, name }) => ({ role, content, name }));
         const userMessages: ChatCompletionMessageParam[] = [...cleanedMessages, { role, content, name }];
         const userMessage = Message.addMessage(threadId, role, content, '');
-        console.time("chat")
+        // console.time("chat")
         const chatResponseStream = await chatAsync(userMessages);
 
         res.writeHead(200, {
@@ -93,13 +93,13 @@ class APIController {
         for await (const chunk of chatResponseStream) {
             const obj = { data: { id: assisstantMessage.id, c: chunk.choices[0]?.delta?.content || '' } }
             res.write(JSON.stringify(obj) + '\n');
-            process.stdout.write(chunk.choices[0]?.delta?.content || '' + "\n");
+            // process.stdout.write(chunk.choices[0]?.delta?.content || '' + "\n");
             assisstantMessageText += chunk.choices[0]?.delta?.content || ''
         }
         Message.updateMessage(assisstantMessage.id, 'assistant', assisstantMessageText);
         res.end();
-        console.timeEnd("chat")
-        console.log("assisstantMessageText", assisstantMessageText)
+        // console.timeEnd("chat")
+        // console.log("assisstantMessageText", assisstantMessageText)
     }
 
     static async createMessage(req: Request, res: Response) {
@@ -156,13 +156,13 @@ class APIController {
         if (audioFiles.length === 0) {
             //create the audio files
             const audioFiles = await getTTS(message.content);
-            console.log("mp3Files", audioFiles)
+            // console.log("mp3Files", audioFiles)
             const audioFilesIds: number[] = [];
             for (let i = 0; i < audioFiles.length; i++) {
                 const audioFile = audioFiles[i];
-                console.log("About to add audioFile with mesasge id ", message.id, "and mp3File", audioFile, "to database")
+                // console.log("About to add audioFile with mesasge id ", message.id, "and mp3File", audioFile, "to database")
                 const audioFileInstance = AudioFiles.addAudioFile(message.id, audioFile);
-                console.log("audioFile id", audioFileInstance.id)
+                // console.log("audioFile id", audioFileInstance.id)
                 audioFilesIds.push(audioFileInstance.id);
             }
             return res.json(audioFilesIds);
@@ -192,7 +192,7 @@ class APIController {
         const chatResponse = await getChatTitle(newMessages);
         Thread.updateThread(threadId, chatResponse);
         thread.title = chatResponse;
-        console.log("thread renmaed as: ", thread)
+        // console.log("thread renmaed as: ", thread)
         res.json(thread);
     }
 

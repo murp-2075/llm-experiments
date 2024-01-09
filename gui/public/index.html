@@ -89,6 +89,7 @@
 
 <body>
 
+    <div hx-get="api/initializehomepage" hx-trigger="load"></div>
     <!-- =======================
   Header START -->
 
@@ -122,7 +123,7 @@
                             <a class="nav-link" href="/blog">Blog</a>
                         </li>
                         <!-- Nav item -->
-                          <div id="appLink"></div>
+                        <div id="appLink"></div>
                     </ul>
                 </div>
                 <!-- Main navbar END -->
@@ -130,7 +131,7 @@
                 <!-- Nav right START -->
                 <!-- Need to change this up so that instead it shows a link to log in or just shows the users name otherwise. But make sure to show the users name.-->
                 <div class="ms-3 ms-lg-auto">
-                    <div hx-get="api/loadloginbutton" hx-trigger="load"></div>
+                    <div id="loginLogoutButton"></div>
                     <!-- <% if (user) { %>
                         <a class="btn btn-primary" href="/logout">Log Out</a>
                         <% } else { %>
@@ -653,7 +654,7 @@ JS libraries, plugins and custom scripts -->
 
     <!-- Theme Functions -->
     <script src="assets/js/functions.js"></script>
-    
+
     <script src="assets/js/htmx.js"></script>
 
 </body>

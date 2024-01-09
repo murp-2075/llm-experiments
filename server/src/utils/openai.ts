@@ -7,7 +7,8 @@ const model = 'gpt-4-1106-preview'
 // const model = 'gpt-3.5-turbo-1106'
 
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
+    // apiKey: process.env.OPENAI_API_KEY
+    apiKey: Bun.env.OPENAI_API_KEY
 });
 
 const chat = async function (messages: any): Promise<OpenAI.Chat.Completions.ChatCompletionMessage> {
@@ -72,8 +73,8 @@ const getChatTitle = async function (messages: any): Promise<string> {
     });
     const tool_call = chatCompletion.choices[0]?.message?.tool_calls?.[0];
     const results = JSON.parse(tool_call?.function?.arguments || '{}');
-    console.log("tool_call", tool_call)
-    console.log("results", results)
+    // console.log("tool_call", tool_call)
+    // console.log("results", results)
     return results.title;
     // return chatCompletion.choices[0].message;
 }
@@ -108,9 +109,9 @@ const getTTS = async function (text: string): Promise<string[]> {
         // const speechFile = `./audioFiles/${createGuid()}.mp3`
         const speechFile = `./audioFiles/${createGuid()}.aac`
         const buffer = Buffer.from(await mp3.arrayBuffer());
-        console.log("buffer size", buffer.length)
+        // console.log("buffer size", buffer.length)
         await fs.promises.writeFile(speechFile, buffer);
-        console.log("speechFile", speechFile)
+        // console.log("speechFile", speechFile)
         speechFiles.push(speechFile);
     }
     return speechFiles;
@@ -151,7 +152,7 @@ const transcribeAudio = async function (audio: any, format = 'mp3') {
         fs.writeFile(tempFilePath, audio.buffer, async (err) => {
             await checkFileReady(tempFilePath);
             if (err) {
-                console.error(err);
+                // console.error(err);
                 return reject(err);
             }
             const transcription = await openai.audio.transcriptions.create({

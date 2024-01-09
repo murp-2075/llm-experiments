@@ -6,7 +6,7 @@ import helmet from "helmet";
 import session from 'express-session';
 const SQLiteStore = require('connect-sqlite3')(session);
 
-const PROD = process.env.NODE_ENV === 'production';
+const PROD = Bun.env.NODE_ENV === 'production';
 const sessionConfig = {
   store: new SQLiteStore({
     //   dir: 'path/to/store/directory', // Optional, default is current directory
@@ -14,7 +14,7 @@ const sessionConfig = {
     // ...other options
   }),
   name: 'session_id',              // Custom cookie name
-  secret: process.env.EXPRESS_SESSION_KEY,       // Secret key to sign the session ID cookie
+  secret: Bun.env.EXPRESS_SESSION_KEY,       // Secret key to sign the session ID cookie
   resave: false,                   // Avoid resaving sessions that haven't changed
   saveUninitialized: false,        // Don't save uninitialized sessions
   cookie: {
@@ -45,7 +45,6 @@ app.get('/ping', (_req, res) => {
 
 app.use((req,res,next)=>{
   //log the route
-  console.log(req.method, req.url)
   next()
 })
 // Setup middleware
@@ -87,7 +86,7 @@ app.use((error: string, _req: express.Request, res: express.Response) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 3000;
+const PORT = Bun.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

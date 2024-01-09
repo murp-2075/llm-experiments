@@ -7,7 +7,7 @@ import moby from './texts/moby_short.txt'
 // import moby from './texts/nuclear.txt'
 
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_KEY
+    apiKey: Bun.env.OPENAI_KEY
 });
 
 const tools: ChatCompletionTool[] = [

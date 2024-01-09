@@ -12,18 +12,6 @@ import HomeController from '../controllers/homeController';
 
 router.use(logRequest)
 
-
-router.get('/loadloginbutton', (req, res) => {
-    if (req.session.user) {
-        res.send(`<a class="btn btn-primary" href="/logout">Log Out</a>
-        <li class="nav-item" id="appLink" hx-swap-oob="true">
-            <a class="nav-link" href="/app.html">App</a>
-        </li>`)
-    } else {
-        res.send('<a class="btn btn-primary" href="/login">Log In</a>')
-    }
-})
-
 // GET request to retrieve all users
 router.get('/getMessages', isLoggedIn, APIController.getMessages);
 router.post('/createMessage', isLoggedIn, APIController.createMessage);
@@ -42,10 +30,10 @@ router.post('/deleteThread', isLoggedIn, APIController.deleteThread);
 router.get('/getUser', isLoggedIn, APIController.getUser);
 
 // Auth routes
-router.get('/', HomeController.home);
 router.get('/login', HomeController.login);
 router.post('/login', HomeController.loginSubmit);
 router.get('/logout', HomeController.logout);
 router.get('/test', HomeController.test);
+router.get('/initializehomepage', HomeController.initializehomepage);
 
 export default router;

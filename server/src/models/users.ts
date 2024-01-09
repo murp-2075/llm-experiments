@@ -28,7 +28,7 @@ import type express from "express";
 
 setInterval(() => {
     // Delete old logs default to 1 year
-    const deleteOldLogs = parseInt(process.env.DELETE_OLD_LOGS || '0') || 365 * 24 * 60 * 60 * 1000;
+    const deleteOldLogs = parseInt(Bun.env.DELETE_OLD_LOGS || '0') || 365 * 24 * 60 * 60 * 1000;
     if (deleteOldLogs) {
         const deleteOldLogsQuery = db.query('DELETE FROM logs WHERE timestamp < ?');
         deleteOldLogsQuery.run(new Date(Date.now() - deleteOldLogs).toISOString());
@@ -61,9 +61,8 @@ class User {
         return null;
     }
 
-    static findByEmail(email: string): User | null {
-        const sql = db.query('SELECT * FROM users WHERE email = ?');
-        const row: any = sql.get(email)
+    static async findByEmail(email: string): Promise<User | null> {
+        const row: any = db.query('SELECT * FROM users WHERE email = ?').get(email);
         if (row) {
             return new User(row.id, row.email, row.isAdmin, row.firstName, row.lastName);
         }
