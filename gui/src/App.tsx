@@ -5,11 +5,11 @@ import ChatContainer from './ChatContainer';
 import styles from './App.module.css';
 
 
-function queryServer() {
-    fetch('/test')
-        .then(response => response.json())
-        .then(data => console.log(data)).catch(err => console.log(err));
-}
+// function queryServer() {
+//     fetch('/test')
+//         .then(response => response.json())
+//         .then(data => console.log(data)).catch(err => console.log(err));
+// }
 
 
 const App: Component = () => {

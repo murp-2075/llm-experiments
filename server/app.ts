@@ -56,15 +56,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // const __filename = fileURLToPath(import.meta.url);
 // const __dirname = path.dirname(__filename);
 // app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join('./', 'public')));
+// app.use(express.static(path.join('./', 'public')));
 
 
 app.use(session(sessionConfig));
 
 // Setup view engine
-app.engine('.html', require('ejs').__express);
-app.set('views', path.join(__dirname, 'src/views'));
-app.set('view engine', 'html');
+// app.engine('.html', require('ejs').__express);
+// app.set('views', path.join(__dirname, 'src/views'));
+// app.set('view engine', 'html');
 
 
 // Define routes

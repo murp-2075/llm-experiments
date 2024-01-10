@@ -1,7 +1,7 @@
 import { Show, createSignal, onCleanup } from 'solid-js';
 import ChatType from './types/ChatType';
 import CodeHighlighter from './utils/CodeHighlighter';
-import { getAudioFileIdsFromMessage, editMessage, playAudio, pauseAudio, stopAudio, appState } from './Store';
+import { getAudioFileIdsFromMessage, editMessage, playAudio, pauseAudio, stopAudio, skipBackwarddAudio, skipForwardAudio, appState } from './Store';
 import ChatMessageMenu from './ChatMessageMenu';
 
 
@@ -21,10 +21,6 @@ const ChatMessage = (chat: ChatType) => {
         }, 500); // Trigger after 500ms for long press
     };
 
-    const handleTouchEnd = () => {
-        clearTimeout(pressTimer);
-    };
-
     const deleteMessageHandler = () => {
         if (confirm('Are you sure you want to delete this message?')) {
             editMessage(chat.id, '')
@@ -42,6 +38,12 @@ const ChatMessage = (chat: ChatType) => {
     const handlePlayClick = () => {
         playAudio();
     };
+    const handleForwardClick = () => {
+        skipForwardAudio();
+    };
+    const handleBackwardClick = () => {
+        skipBackwarddAudio();
+    }
     const handlePauseClick = () => {
         pauseAudio();
     };
@@ -60,9 +62,9 @@ const ChatMessage = (chat: ChatType) => {
         return (
             <div class="d-flex justify-content-end text-end mb-1" onMouseEnter={() => setShowMenu(true)} onMouseLeave={() => setShowMenu(false)}>
                 <div class="w-100" onDblClick={handleDoubleClick}
-                    // onTouchStart={handleTouchStart}
-                    // onTouchEnd={handleTouchEnd}
-                    >
+                // onTouchStart={handleTouchStart}
+                // onTouchEnd={handleTouchEnd}
+                >
                     <div class="d-flex flex-column align-items-end">
                         <div class="bg-primary text-white p-2 px-3 rounded-2">{chat.content}</div>
                         <Show when={appState.audioMessageIdPlaying == chat.id}>
@@ -74,10 +76,10 @@ const ChatMessage = (chat: ChatType) => {
                         </Show>
                         {/* // {chat.content} */}
                         {/* <Show when={showMenu()}> */}
-                            <ChatMessageMenu
-                                chat={chat}
-                                deleteMessageHandler={deleteMessageHandler}
-                                editMessageHandler={editMessageHandler} />
+                        <ChatMessageMenu
+                            chat={chat}
+                            deleteMessageHandler={deleteMessageHandler}
+                            editMessageHandler={editMessageHandler} />
                         {/* </Show> */}
                     </div>
                 </div>
@@ -91,28 +93,28 @@ const ChatMessage = (chat: ChatType) => {
                         <img class="avatar-img rounded-circle" src="assets/images/avatar/10.jpg" alt="" />
                     </div>
                 </Show>
-                <div class="flex-grow-1"
-                    onDblClick={handleDoubleClick}
-                    // onTouchStart={handleTouchStart}
-                    // onTouchEnd={handleTouchEnd}
-                >
+                <div class="flex-grow-1">
                     <div class="w-100">
                         <div class="d-flex flex-column align-items-start">
                             <div class="bg-light text-secondary p-2 px-3 rounded-2">
-                                <CodeHighlighter content={chat.content} />
+                                <div onDblClick={handleDoubleClick}>
+                                    <CodeHighlighter content={chat.content} />
+                                </div>
                                 <Show when={appState.audioMessageIdPlaying == chat.id}>
                                     <div class="d-flex justify-content-end align-items-center">
                                         <button class="btn-icon" onClick={handlePlayClick}><i class="fas fa-play"></i></button>
+                                        <button class="btn-icon" onClick={handleBackwardClick}><i class="fas fa-backward"></i></button>
+                                        <button class="btn-icon" onClick={handleForwardClick}><i class="fas fa-forward"></i></button>
                                         <button class="btn-icon" onClick={handlePauseClick}><i class="fas fa-pause"></i></button>
                                         <button class="btn-icon" onClick={handleStopClick}><i class="fas fa-stop"></i></button>
                                     </div>
                                 </Show>
                                 {/* // {chat.content} */}
                                 {/* <Show when={showMenu()}> */}
-                                    <ChatMessageMenu
-                                        chat={chat}
-                                        deleteMessageHandler={deleteMessageHandler}
-                                        editMessageHandler={editMessageHandler} />
+                                <ChatMessageMenu
+                                    chat={chat}
+                                    deleteMessageHandler={deleteMessageHandler}
+                                    editMessageHandler={editMessageHandler} />
                                 {/* </Show> */}
                             </div>
                             <Show when={chat.createdAt}>

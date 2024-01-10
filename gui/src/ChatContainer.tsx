@@ -62,7 +62,6 @@ const ChatContainer: Component = () => {
         requestAnimationFrame(() => {
           currentContainer.scrollTop = currentContainer.scrollHeight;
           lastScrollHeight = currentContainer.scrollHeight;
-          console.log("scrolled");
         });
       }
     }
@@ -78,7 +77,6 @@ const ChatContainer: Component = () => {
   onMount(async () => {
     inputRef.focus();
     await getThreads();
-    console.log(appState.threads.list)
     if (!appState.threads.list || appState.threads.list.length === 0) {
       await createThread('New Thread');
     }

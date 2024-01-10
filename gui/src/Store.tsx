@@ -67,12 +67,6 @@ function stopFetching() {
     setAppState('fetchingCounter', appState.fetchingCounter - 1);
 }
 
-// createEffect(() => {
-//     const stateString = JSON.stringify(appState, null, 2);
-//     console.log(stateString);
-
-// });
-
 const selectThread = (threadId: number) => {
     setAppState('threads', 'selectedThreadId', threadId);
     getMessages(threadId);
@@ -106,9 +100,7 @@ const updateThread = async (threadId: number, title: string) => {
 const getThreads = async () => {
     const res = await fetch('/api/getThreads')
     const threads = await res.json()
-    console.log("got back ", threads)
     setAppState('threads', 'list', threads);
-    console.log("appState is now ", appState.threads.list)
 }
 
 const deleteThread = async (threadId: number) => {
@@ -136,7 +128,6 @@ const getMessages = (threadId: number) => {
     fetch(`/api/getMessages?threadId=${threadId}`)
         .then((res) => res.json())
         .then((messages) => {
-            console.log("got back in getMessages ", messages)
             setAppState('messages', messages);
         });
 }
@@ -164,7 +155,6 @@ const editMessage = (messageId: number, content: string) => {
     })
         .then((res) => res.json())
         .then((data) => {
-            console.log("got back ", data)
             setAppState('messages', (messages) => messages.map((message) => message.id === messageId ? data : message));
         });
 }
@@ -201,7 +191,6 @@ const createMessage = async (content: string) => {
         const processStream = async () => {
             const { done, value } = await reader.read();
             if (done) {
-                console.log('Stream complete');
                 autoNameIfAppropriate();
                 stopFetching()
                 if (appState.preferences.speakResponses) {
@@ -225,7 +214,6 @@ const createMessage = async (content: string) => {
                             content: content,
                             createdAt: new Date().toISOString()
                         }
-                        console.log("Adding to appState.messages with ", userMessage)
                         setAppState('messages', (originalMessages) => [...originalMessages, userMessage]);
                     }
                     // Now check to see if the just has an id. If so, it will be a one of a stream of assistant messages
@@ -238,7 +226,6 @@ const createMessage = async (content: string) => {
                                 ...existingMessage,
                                 content: existingMessage.content + data.c
                             }
-                            console.log("Updating appState.messages with ", updatedMessage)
                             setAppState('messages', (originalMessages) => originalMessages.map((message) => message.id === data.id ? updatedMessage : message));
                         } else {
                             const assistantMessage = {
@@ -251,10 +238,8 @@ const createMessage = async (content: string) => {
                             setAppState('messages', (originalMessages) => [...originalMessages, assistantMessage]);
                         }
                     }
-                    console.log('got back ', data);
                 }
             })
-            console.log('CHUNK: ', chunk);
             // Recursively read the next chunk
             processStream();
         };
@@ -284,7 +269,6 @@ const createMessageFromAudio = async (audioBlob: Blob) => {
 let audio: HTMLAudioElement | undefined;
 function playAudioFiles(audioFileIds: number[], index: number, messageId?: number) {
     if (index < audioFileIds.length) {
-        console.log("playing audio ", audioFileIds[index])
         audio = new Audio(`/api/getAudioFile/${audioFileIds[index]}`);
         audio.play();
         setAppState('audioMessageIdPlaying', messageId || null);
@@ -310,6 +294,18 @@ function pauseAudio() {
     }
 }
 
+function skipForwardAudio() {
+    if (audio) {
+        audio.currentTime += 5;
+    }
+}
+
+function skipBackwarddAudio() {
+    if (audio) {
+        audio.currentTime -= 5;
+    }
+}
+
 function playAudio() {
     if (audio) {
         audio.play();
@@ -321,7 +317,6 @@ const getAudioFileIdsFromMessage = (messageId: number) => {
     fetch(`/api/getAudioFileIdsFromMessage/${messageId}`)
         .then((res) => res.json())
         .then((audioFileIds) => {
-            console.log("got back ", audioFileIds)
             playAudioFiles(audioFileIds, 0, messageId);
         }).finally(() => {
             stopFetching()
@@ -354,6 +349,6 @@ export {
     appState, setAppState,
     selectThread, getThreads, createThread, updateThread, deleteThread, autoNameThread,
     getMessages, createMessage, editMessage, createMessageFromAudio,
-    getAudioFileIdsFromMessage, stopAudio, pauseAudio, playAudio,
+    getAudioFileIdsFromMessage, stopAudio, pauseAudio, playAudio, skipForwardAudio, skipBackwarddAudio,
     toggleSpeakResponses
 }

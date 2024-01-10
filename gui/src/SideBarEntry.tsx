@@ -57,16 +57,13 @@ const SideBarEntry = (props: any) => {
                             ><i class="bi bi-pencil me-2 fw-icon"></i>Rename chat</button>
                         </li>
                         <li>
-                            <button class="dropdown-item btn btn-link ps-3" onClick={() => { deleteThreadHandler(thread.id) }}
-                            ><i class="bi bi-trash me-2 fw-icon"></i>Delete chat</button>
+                            <button class="dropdown-item btn btn-link ps-3" onClick={()=>{ autonameThreadHandler(thread.id) }}
+                            ><i class="bi bi-archive me-2 fw-icon"></i>Autoname chat</button>
                         </li>
                         <li class="dropdown-divider"></li>
                         <li>
-                            <button class="dropdown-item btn btn-link ps-3" onClick={()=>{ autonameThreadHandler(thread.id) }}
-                            ><i class="bi bi-archive me-2 fw-icon"></i>Autoname chat</button>
-                            {/* <a class="dropdown-item" href="#">
-                                <i class="bi bi-archive me-2 fw-icon"></i>
-                            Archive chat</a> */}
+                            <button class="dropdown-item btn btn-link ps-3" onClick={() => { deleteThreadHandler(thread.id) }}
+                            ><i class="bi bi-trash me-2 fw-icon"></i>Delete chat</button>
                         </li>
                     </ul>
                 </div>

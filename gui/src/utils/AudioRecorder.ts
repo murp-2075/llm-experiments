@@ -74,7 +74,6 @@ class AudioRecorder {
 
         silenceDetector.port.onmessage = (event) => {
             if (event.data.stopRecording) {
-                console.log('silence-detector-processor: stop recording');
                 this.callback(this.stopRecording());
             }
         };
