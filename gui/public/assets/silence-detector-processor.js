@@ -16,10 +16,6 @@ class SilenceDetectorProcessor extends AudioWorkletProcessor {
                 sum += channelData[i] * channelData[i];
             }
             let rms = Math.sqrt(sum / channelData.length);
-            // if (rms < this.silenceThreshold) {
-            //     if (currentTime - this.lastSoundTime > this.silenceDuration / 1000) {
-            //         this.port.postMessage({ stopRecording: true });
-            //     }
             if (!this.hasSentStopMessage && rms < this.silenceThreshold) {
                 if (currentTime - this.lastSoundTime > this.silenceDuration / 1000) {
                     this.port.postMessage({ stopRecording: true });

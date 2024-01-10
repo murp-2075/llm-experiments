@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { ChatCompletionTool } from 'openai/resources/index.mjs';
 import { chunkText } from './textUtils';
 import { Stream } from 'openai/streaming.mjs';
+import combineAudioFiles from './ffmpeg';
 
 const model = 'gpt-4-1106-preview'
 // const model = 'gpt-3.5-turbo-1106'
@@ -64,12 +65,12 @@ const getChatTitle = async function (messages: any): Promise<string> {
             delete message.name;
         }
     });
-    
+
     const chatCompletion = await openai.chat.completions.create({
         messages,
         model,
         tools,
-        tool_choice: {"type": "function", "function": {"name": "handle_chat_title"}}
+        tool_choice: { "type": "function", "function": { "name": "handle_chat_title" } }
     });
     const tool_call = chatCompletion.choices[0]?.message?.tool_calls?.[0];
     const results = JSON.parse(tool_call?.function?.arguments || '{}');
@@ -93,7 +94,9 @@ const getTTS = async function (text: string): Promise<string[]> {
     // const texts = chunkText(text, 256);
     const ttsPromises: Promise<any>[] = [];
 
-    texts.forEach(async (text) => {
+    // texts.forEach(async (text) => {
+    for (let i = 0; i < texts.length; i++) {
+        const text = texts[i];
         ttsPromises.push(openai.audio.speech.create({
             model: "tts-1-hd",
             // voice: "nova",
@@ -101,7 +104,7 @@ const getTTS = async function (text: string): Promise<string[]> {
             input: text,
             response_format: "aac"
         }));
-    })
+    }
     const mp3s = await Promise.all(ttsPromises);
     const speechFiles: string[] = [];
     for (let i = 0; i < mp3s.length; i++) {
@@ -114,7 +117,20 @@ const getTTS = async function (text: string): Promise<string[]> {
         // console.log("speechFile", speechFile)
         speechFiles.push(speechFile);
     }
-    return speechFiles;
+    const combinedFile = `./audioFiles/${createGuid()}.aac`
+    try {
+        await combineAudioFiles(speechFiles, combinedFile);
+    } catch (e) {
+        console.error("combineAudioFiles error", e)
+    }
+    speechFiles.forEach((file) => {
+        try {
+            fs.promises.unlink(file);
+        } catch (e) {
+            console.error("unlink error", e)
+        }
+    })
+    return [combinedFile];
 }
 
 
