@@ -27,7 +27,7 @@ const CodeHighlighter = (props) => {
         Prism.highlightAllUnder(contentElRef);
     };
 
-    const debouncedHighlight = debounce(highlight, 250); // 250ms debounce time for highlighting
+    const debouncedHighlight = debounce(highlight, 500); // 250ms debounce time for highlighting
 
     onMount(() => {
         processContent();
