@@ -66,7 +66,15 @@ const ChatMessage = (chat: ChatType) => {
                 // onTouchEnd={handleTouchEnd}
                 >
                     <div class="d-flex flex-column align-items-end">
-                        <div class="bg-primary text-white p-2 px-3 rounded-2">{chat.content}</div>
+                        {/* <div class="bg-primary text-white p-2 px-3 rounded-2">{chat.content}</div> */}
+                        <div class="bg-primary text-white p-2 px-3 rounded-2">
+                            {chat.content.split('\n').map((line, index) => (
+                                <>
+                                    {line}
+                                    {index !== chat.content.split('\n').length - 1 && <br />}
+                                </>
+                            ))}
+                        </div>
                         <Show when={appState.audioMessageIdPlaying == chat.id}>
                             <div class="d-flex justify-content-end align-items-center">
                                 <button class="btn-icon" onClick={handlePlayClick}><i class="fas fa-play"></i></button>

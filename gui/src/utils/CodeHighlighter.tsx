@@ -17,7 +17,14 @@ const CodeHighlighter = (props) => {
         const newContent = props.content.replace(regex, (match, lang, code) => {
             return `<pre><code class="language-${lang || 'plaintext'}">${code.trim()}</code></pre>`;
         });
-        setProcessedContent(newContent);
+        const splitContent = newContent.split(/(<pre>[\s\S]*?<\/pre>)/g);
+        for (let i = 0; i < splitContent.length; i++) {
+            if (!splitContent[i].startsWith('<pre>')) {
+                splitContent[i] = splitContent[i].replace(/\n/g, '<br>');
+            }
+        }
+        const brNewContent = splitContent.join('');
+        setProcessedContent(brNewContent);
 
         // Debounce Prism highlighting
         debouncedHighlight();
