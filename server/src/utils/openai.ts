@@ -5,7 +5,8 @@ import { Stream } from 'openai/streaming.mjs';
 import combineAudioFiles from './ffmpeg';
 
 const model = 'gpt-4-1106-preview'
-// const model = 'gpt-3.5-turbo-1106'
+const modelSmart = 'gpt-4-1106-preview'
+const modelFast = 'gpt-3.5-turbo-1106'
 
 const openai = new OpenAI({
     // apiKey: process.env.OPENAI_API_KEY
@@ -21,7 +22,7 @@ const chat = async function (messages: any): Promise<OpenAI.Chat.Completions.Cha
     });
     const chatCompletion = await openai.chat.completions.create({
         messages,
-        model,
+        model: modelSmart,
     });
     return chatCompletion.choices[0].message;
 }
@@ -35,7 +36,7 @@ const chatAsync = async function (messages: any): Promise<Stream<OpenAI.Chat.Com
     });
     const stream = await openai.chat.completions.create({
         messages,
-        model,
+        model: modelSmart,
         stream: true
     });
     return stream;
@@ -68,7 +69,7 @@ const getChatTitle = async function (messages: any): Promise<string> {
 
     const chatCompletion = await openai.chat.completions.create({
         messages,
-        model,
+        model: modelFast,
         tools,
         tool_choice: { "type": "function", "function": { "name": "handle_chat_title" } }
     });

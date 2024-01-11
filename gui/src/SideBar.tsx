@@ -56,7 +56,7 @@ const SideBar: Component = () => {
                             {/* <!-- Search chat END --> */}
                             {/* <!-- Chat list tab START --> */}
                             <div class="mt-4 h-100">
-                                <div class="chat-tab-list custom-scrollbar">
+                                <div class="chat-tab-list custom-scrollbar h-100" style="overflow-y: auto">
                                     <ul class="nav flex-column nav-pills nav-pills-soft">
                                         <li data-bs-dismiss="offcanvas">
                                             {/* <!-- Chat user tab item --> */}
