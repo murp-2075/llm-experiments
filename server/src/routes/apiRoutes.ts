@@ -15,6 +15,7 @@ router.use(logRequest)
 // GET request to retrieve all users
 router.get('/getMessages', isLoggedIn, APIController.getMessages);
 router.post('/createMessage', isLoggedIn, APIController.createMessage);
+router.post('/deleteMessage', isLoggedIn, APIController.deleteMessage);
 router.post('/updateMessage', isLoggedIn, APIController.updateMessage);
 // router.post('/createMessageFromAudio', isLoggedIn, upload.single('content'), APIController.createMessageFromAudio);
 router.post('/transcribeAudio', isLoggedIn, upload.single('content'), APIController.transcribeAudio);

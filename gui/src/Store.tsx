@@ -144,6 +144,21 @@ const autoNameThread = (threadId: number) => {
         });
 }
 
+const deleteMessage = (messageId: number) => {
+    //Submit to /api/deleteMessage a json object with messageId
+    fetch('/api/deleteMessage', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ messageId })
+    })
+        .then((res) => res.json())
+        .then((data) => {
+            setAppState('messages', (messages) => messages.filter((message) => message.id !== messageId));
+        });
+}
+
 const editMessage = (messageId: number, content: string) => {
     //Submit to /api/editMessage a json object with messageId and content
     fetch('/api/updateMessage', {
@@ -348,7 +363,7 @@ function autoNameIfAppropriate() {
 export {
     appState, setAppState,
     selectThread, getThreads, createThread, updateThread, deleteThread, autoNameThread,
-    getMessages, createMessage, editMessage, createMessageFromAudio,
+    getMessages, createMessage, editMessage, createMessageFromAudio, deleteMessage,
     getAudioFileIdsFromMessage, stopAudio, pauseAudio, playAudio, skipForwardAudio, skipBackwarddAudio,
     toggleSpeakResponses
 }

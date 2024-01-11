@@ -61,6 +61,22 @@ class APIController {
 
     }
 
+    static async deleteMessage(req: Request, res: Response) {
+        const messageId = Number(req.body.messageId);
+        const message = Message.getMessageById(messageId);
+        if (!message) {
+            res.status(404).send('Message not found');
+            return;
+        }
+        const thread = Thread.getThreadById(message.threadId);
+        if (!req.session.user || thread.userId !== req.session.user.id) {
+            res.status(403).send('Forbidden');
+            return;
+        }
+        Message.deleteMessage(messageId);
+        res.status(204).send();
+    }
+
     private static async processMessage(threadId: number, role: string, content: string, name: string, speakResponses: boolean, req: Request, res: Response) {
         // console.time('processMessage')
         const thread = Thread.getThreadById(threadId);

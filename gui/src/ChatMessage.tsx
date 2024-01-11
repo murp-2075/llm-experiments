@@ -1,7 +1,7 @@
 import { Show, createSignal, onCleanup } from 'solid-js';
 import ChatType from './types/ChatType';
 import CodeHighlighter from './utils/CodeHighlighter';
-import { getAudioFileIdsFromMessage, editMessage, playAudio, pauseAudio, stopAudio, skipBackwarddAudio, skipForwardAudio, appState } from './Store';
+import { getAudioFileIdsFromMessage,deleteMessage, editMessage, playAudio, pauseAudio, stopAudio, skipBackwarddAudio, skipForwardAudio, appState } from './Store';
 import ChatMessageMenu from './ChatMessageMenu';
 
 
@@ -23,7 +23,7 @@ const ChatMessage = (chat: ChatType) => {
 
     const deleteMessageHandler = () => {
         if (confirm('Are you sure you want to delete this message?')) {
-            editMessage(chat.id, '')
+            deleteMessage(chat.id)
         }
         setShowMenu(false)
     }
